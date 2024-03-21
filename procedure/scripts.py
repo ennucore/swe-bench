@@ -50,7 +50,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
         # Setup miniconda and activate it
        # "wget 'https://repo.anaconda.com/miniconda/Miniconda3-py311_23.11.0-2-Linux-x86_64.sh' -O miniconda.sh",
        # "bash miniconda.sh -b -p $HOME/miniconda3",
-        "source $HOME/miniconda3/bin/activate && conda init --all",
+        # "source $HOME/miniconda3/bin/activate && conda init --all",
         f"git clone -o origin --no-tags https://github.com/{instance['repo']} {repo_directory}",
         f"cd {repo_directory}",
         f"git reset --hard {base_commit}",
@@ -58,7 +58,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
     ]
     if repo in MAP_REPO_TO_INSTALL:
         setup_commands.append(MAP_REPO_TO_INSTALL[repo])
-
+    
     install = MAP_VERSION_TO_INSTALL[repo][version]
 
     # Create conda environment according to install instructinos
@@ -105,7 +105,8 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
         cmd = f"conda create -n {env_name} python={install['python']} {pkgs} -y"
         setup_commands.append(cmd)
 
-    setup_commands.append(f"conda activate {env_name}")
+    setup_commands.append(f"echo 'conda activate {env_name}' >> ~/.bashrc")
+    setup_commands.append("echo ' ' | trunk init -n")
 
     # Install additional packages if specified
     if "pip_packages" in install:
@@ -119,6 +120,17 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
 
     if "install" in install:
         setup_commands.append(install["install"])
+
+    prompt=SWEBENCH_PROMPT.format(
+        repo_name=repo,
+        problem_statement=problem_statement,
+        repo_directory=repo_directory,
+        env_name=env_name,
+    )
+
+    setup_commands.append(
+        f"cat <<'{HEREDOC_DELIMITER}' > ~/issue.md\n{prompt}\n{HEREDOC_DELIMITER}"
+    )
 
     # Reset test files to the state they should be in before the patch.
     test_files = re.findall(DIFF_MODIFIED_FILE_REGEX, test_patch)

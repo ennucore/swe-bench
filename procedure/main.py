@@ -10,7 +10,8 @@ def load_swebench_instances(json_file_path: str):
     return instances
 
 @app.command()
-def get_test_spec_for_instance(json_file_path: str, instance_index: int):
+def get_test_spec_for_instance(json_file_path: str, instance_index: int, script_type: str):
+    assert script_type == "setup" or script_type == "eval"
     """
     Generate a test spec for a specific SWEBench instance identified by index.
     """
@@ -22,12 +23,10 @@ def get_test_spec_for_instance(json_file_path: str, instance_index: int):
         raise typer.Exit(code=1)
 
     test_spec = make_test_spec(instance)
-    typer.echo("Setup Script:")
-    typer.echo(test_spec.setup_script)
-    typer.echo("Prompt:")
-    typer.echo(test_spec.prompt)
-    typer.echo("Eval Script:")
-    typer.echo(test_spec.eval_script)
+    if script_type == "setup":
+        typer.echo(test_spec.setup_script)
+    else:
+        typer.echo(test_spec.eval_script)
 
 if __name__ == "__main__":
     app()
