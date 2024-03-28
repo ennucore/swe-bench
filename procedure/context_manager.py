@@ -627,6 +627,8 @@ class TaskEnvContextManager:
         else:
             if patch[:len(patch)//2] == patch[1 + len(patch)//2:]:
                 patch = patch[:len(patch)//2]
+            fix_line = lambda line: line if line.count('@@') < 2 else line[:line.rfind('@@') + 2]
+            patch = '\n'.join([fix_line(line) for line in patch.split('\n')])
             with open(patch_path, "w") as f:
                 f.write(patch)
 
