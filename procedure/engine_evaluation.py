@@ -109,11 +109,11 @@ def evaluate_predictions(data: Dict):
 
             # Attempt to apply prediction
             patch_type = "pred_try"
-            if not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type) \
+            if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=True, patch_type=patch_type) \
                 and task_instance[KEY_PREDICTION] is not None:
                 task_instance[KEY_PREDICTION] = extract_minimal_patch(task_instance[KEY_PREDICTION])
                 patch_type = "pred_minimal_try"
-                if not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type):
+                if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=True, patch_type=patch_type):
                     continue
             tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=True)
             patch_type = patch_type.replace("_try", "")

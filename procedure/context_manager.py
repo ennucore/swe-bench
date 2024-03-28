@@ -495,11 +495,12 @@ class TaskEnvContextManager:
             self.exec("git restore .".split(" "))
             self.exec("git reset HEAD .".split(" "))
             self.exec("git clean -fdx".split(" "))
-            self.exec(
+            print('resetting to', instance['base_commit'])
+            print(self.exec(
                 f"git -c advice.detachedHead=false checkout {instance['base_commit']}".split(
                     " "
                 )
-            )
+            ))
             logger_taskenv.info(
                 f"[{self.testbed_name}] [{instance[KEY_INSTANCE_ID]}] Reset task environment to {instance['base_commit']}"
             )
@@ -628,7 +629,7 @@ class TaskEnvContextManager:
             # remove duplicates
             patch = 'diff --git' + '\ndiff --git'.join(list(set(patch.removeprefix('diff --git').split('\ndiff --git'))))
             fix_line = lambda line: line if line.count('@@') < 2 else line[:line.rfind('@@') + 2]
-            patch = '\n'.join([fix_line(line) for line in patch.split('\n')])
+            patch = '\n'.join([fix_line(line) for line in patch.split('\n')]) + '\n'
             with open(patch_path, "w") as f:
                 f.write(patch)
 
