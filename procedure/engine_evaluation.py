@@ -107,22 +107,23 @@ def evaluate_predictions(data: Dict):
             if not tcm.reset_task_env(task_instance):
                 continue
 
+            additional_revert = False
             # Attempt to apply prediction
             patch_type = "pred_try"
-            if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=True, patch_type=patch_type) \
+            if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=additional_revert, patch_type=patch_type) \
                 and task_instance[KEY_PREDICTION] is not None:
                 task_instance[KEY_PREDICTION] = extract_minimal_patch(task_instance[KEY_PREDICTION])
                 patch_type = "pred_minimal_try"
-                if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=True, patch_type=patch_type):
+                if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=additional_revert, patch_type=patch_type):
                     continue
-            tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type)
+            tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=not additional_revert)
             patch_type = patch_type.replace("_try", "")
 
             # Run installation + testing script
             if (
                 not tcm.run_install_task(task_instance)
                 or not tcm.apply_patch(task_instance["test_patch"], patch_type="test")
-                or not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=True)
+                or not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=additional_revert)
                 or not tcm.run_tests_task(task_instance)
             ):
                 continue

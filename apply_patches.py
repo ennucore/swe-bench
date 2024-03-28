@@ -1,8 +1,9 @@
 import os
+import tempfile
 import sys
 import subprocess
 
-def extract_patches(file_content):
+def extract_patch(file_content, revert_patch: bool = True):
     patches = []
     current_patch = []
     in_patch = False
@@ -14,7 +15,7 @@ def extract_patches(file_content):
                 patches.append('\n'.join(current_patch))
                 current_patch = []
             in_patch = True
-        elif in_patch and (line.startswith('CondaError:') or line.startswith('no change  ')):
+        elif in_patch and (line.startswith('CondaError:') or line.startswith('no change  ') or line.startswith('ENDPATCH')):
             if current_patch:
                 patches.append('\n'.join(current_patch))
             break
@@ -24,8 +25,20 @@ def extract_patches(file_content):
 
     if current_patch:
         patches.append('\n'.join(current_patch))
+    patch = '\n'.join(patches)
+    patch = 'diff --git' + '\ndiff --git'.join(list(set(patch.removeprefix('diff --git').split('\ndiff --git'))))
+    fix_line = lambda line: line if line.count('@@') < 2 else line[:line.rfind('@@') + 2]
+    patch = '\n'.join([fix_line(line) for line in patch.split('\n')]) + '\n'
+    if patch.strip() and revert_patch:
+        # we need to run interdiff -q file.patch /dev/null > reversed.patch on it
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+            f.write(patch)
+            f.flush()
+            res = subprocess.check_output(['interdiff', '-q', f.name, '/dev/null'])
+            # stdout is the reversed patch
+            patch = res.decode()
 
-    return patches
+    return patch
 
 
 def extract_rewrite_patch(file_content: str) -> str:

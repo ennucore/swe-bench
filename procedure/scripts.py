@@ -151,7 +151,8 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
         # This is just informational, so we have a record
         f"git status  | cat",
         f"git show | cat",
-        f"git diff {base_commit} | cat",
+        f"echo 'DIFF:\n' &&git diff {base_commit} | cat",
+        f"echo ENDPATCH",
         f"conda init --all && source ~/.bashrc && conda activate {env_name}",
         reset_tests_command,
         apply_test_patch_command,
