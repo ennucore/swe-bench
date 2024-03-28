@@ -624,6 +624,8 @@ class TaskEnvContextManager:
         if patch.startswith('REWRITE'):
             patch = apply_rewrite_patch(patch)
         else:
+            if patch[:len(patch)//2] == patch[1 + len(patch)//2:]:
+                patch = patch[:len(patch)//2]
             with open(patch_path, "w") as f:
                 f.write(patch)
 
@@ -646,10 +648,10 @@ class TaskEnvContextManager:
                     f.write(out_patch.stderr)
                 return False
 
-        # Patch apply succeeded
-        logger_taskenv.info(
-            f"[{self.testbed_name}] [{self.instance[KEY_INSTANCE_ID]}] {log_cmd} patch successful ({patch_type})"
-        )
+            # Patch apply succeeded
+            logger_taskenv.info(
+                f"[{self.testbed_name}] [{self.instance[KEY_INSTANCE_ID]}] {log_cmd} patch successful ({patch_type})"
+            )
         with open(self.log_file, "a") as f:
             f.write(f"{APPLY_PATCH_PASS} ({patch_type})\n")
         return True
