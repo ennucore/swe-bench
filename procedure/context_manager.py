@@ -287,7 +287,7 @@ class TestbedContextManager:
 
                     # Install dependencies
                     path_to_reqs = get_requirements(setup_ref_instance, self.testbed)
-                    cmd = f"bash -c 'source {path_activate} {env_name} && echo 'activate successful' && pip install -r {path_to_reqs}'"
+                    cmd = f"bash -c 'source {path_activate} {env_name} && pip install -r {path_to_reqs}'"
                     logger_testbed.info(
                         f"[Testbed] Installing dependencies for {env_name}; Command: {cmd}"
                     )
@@ -444,7 +444,7 @@ class TaskEnvContextManager:
 
         self.cmd_activate = (
             f"source {os.path.join(self.conda_path, 'bin', 'activate')} "
-            + f"{self.venv} && echo 'activate successful'"
+            + f"{self.venv} && echo activate successful"
         )
         self.timeout = timeout
 
