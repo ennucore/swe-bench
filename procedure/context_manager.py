@@ -124,7 +124,7 @@ class TestbedContextManager:
             self.testbed = os.path.abspath(testbed)
         else:
             self.temp_dir_work = TemporaryDirectory(dir=temp_dir)
-            self.testbed = (temp_dir.remove_suffix("/") if temp_dir is not None else "") + '/test' + str(random.randint(0, 1000))
+            self.testbed = (temp_dir.removesuffix("/") if temp_dir is not None else "") + '/test' + str(random.randint(0, 1000))
         logger_testbed.info(
             f"[Testbed] Using working directory {self.testbed} for testbed"
         )
@@ -635,7 +635,7 @@ class TaskEnvContextManager:
                 f"git apply -v -R {patch_path}" if revert else f"git apply -v {patch_path}"
             )
             out_patch = self.exec(apply_cmd.split(" "), raise_error=False, check=False)
-            os.remove(patch_path)
+            #os.remove(patch_path)
 
             log_cmd = "Revert" if revert else "Apply"
             if out_patch.returncode != 0:
