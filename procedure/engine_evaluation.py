@@ -115,14 +115,14 @@ def evaluate_predictions(data: Dict):
                 patch_type = "pred_minimal_try"
                 if not tcm.apply_patch(task_instance[KEY_PREDICTION], revert=True, patch_type=patch_type):
                     continue
-            tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=True)
+            tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type)
             patch_type = patch_type.replace("_try", "")
 
             # Run installation + testing script
             if (
                 not tcm.run_install_task(task_instance)
                 or not tcm.apply_patch(task_instance["test_patch"], patch_type="test")
-                or not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type)
+                or not tcm.apply_patch(task_instance[KEY_PREDICTION], patch_type=patch_type, revert=True)
                 or not tcm.run_tests_task(task_instance)
             ):
                 continue
