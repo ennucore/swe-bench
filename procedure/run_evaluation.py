@@ -220,7 +220,7 @@ def main(
     finally:
         # Clean up
         for temp_dir in temp_dirs:
-            shutil.rmtree(temp_dir)
+            pass #shutil.rmtree(temp_dir)
 
 
 if __name__ == "__main__":
