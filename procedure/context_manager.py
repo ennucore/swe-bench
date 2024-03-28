@@ -627,6 +627,9 @@ class TaskEnvContextManager:
             patch = apply_rewrite_patch(patch)
         else:
             # remove duplicates
+            if patch.startswith('REVERT'):
+                patch = patch.removeprefix('REVERT\n')
+                revert = not revert
             patch = 'diff --git' + '\ndiff --git'.join(list(set(patch.removeprefix('diff --git').split('\ndiff --git'))))
             fix_line = lambda line: line if line.count('@@') < 2 else line[:line.rfind('@@') + 2]
             patch = '\n'.join([fix_line(line) for line in patch.split('\n')]) + '\n'

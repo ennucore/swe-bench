@@ -30,6 +30,7 @@ def extract_patch(file_content, revert_patch: bool = True):
     fix_line = lambda line: line if line.count('@@') < 2 else line[:line.rfind('@@') + 2]
     patch = '\n'.join([fix_line(line) for line in patch.split('\n')]) + '\n'
     if patch.strip() and revert_patch:
+        return 'REVERT\n' + patch
         # we need to run interdiff -q file.patch /dev/null > reversed.patch on it
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
             f.write(patch)
