@@ -26,6 +26,7 @@ from utils import (
     get_environment_yml,
     get_requirements,
     get_test_directives,
+    apply_rewrite_patch
 )
 
 logging.basicConfig(
@@ -620,15 +621,18 @@ class TaskEnvContextManager:
             os.path.dirname(self.testbed.rstrip("/")),
             f"temp_{self.instance[KEY_INSTANCE_ID]}_{patch_type}.patch",
         )
-        with open(patch_path, "w") as f:
-            f.write(patch)
+        if patch.startswith('PATCH'):
+            patch = apply_rewrite_patch(patch)
+        else:
+            with open(patch_path, "w") as f:
+                f.write(patch)
 
-        # Apply patch to testbed directory
-        apply_cmd = (
-            f"git apply -v -R {patch_path}" if revert else f"git apply -v {patch_path}"
-        )
-        out_patch = self.exec(apply_cmd.split(" "), raise_error=False, check=False)
-        os.remove(patch_path)
+            # Apply patch to testbed directory
+            apply_cmd = (
+                f"git apply -v -R {patch_path}" if revert else f"git apply -v {patch_path}"
+            )
+            out_patch = self.exec(apply_cmd.split(" "), raise_error=False, check=False)
+            os.remove(patch_path)
 
         log_cmd = "Revert" if revert else "Apply"
         if out_patch.returncode != 0:

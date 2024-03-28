@@ -15,7 +15,7 @@ from swe_types import SwebenchInstance
 
 
 SWEBENCH_PROMPT = """
-Please help me resolve this issue in the repository {repo_name}. I've checked out the repository in your local machine at ~/{repo_directory} and set up a conda env for you (use `conda activate {env_name}`).
+Please help me resolve this issue in the repository {repo_name}.
 
 ISSUE:
 {problem_statement}
@@ -58,6 +58,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
     ]
     if repo in MAP_REPO_TO_INSTALL:
         setup_commands.append(MAP_REPO_TO_INSTALL[repo])
+    setup_commands.append("conda config --append channels conda-forge")
     
     install = MAP_VERSION_TO_INSTALL[repo][version]
 
@@ -74,7 +75,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
         setup_commands.append(
             f"cat <<'{HEREDOC_DELIMITER}' > {path_to_reqs}\n{reqs}\n{HEREDOC_DELIMITER}"
         )
-        cmd = f"conda activate {env_name} && pip install -r {path_to_reqs}"
+        cmd = f"conda init && source ~/.bashrc && conda activate {env_name} && pip install -r {path_to_reqs}"
         setup_commands.append(cmd)
 
         setup_commands.append(f"rm {path_to_reqs}")
@@ -106,6 +107,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
         setup_commands.append(cmd)
 
     setup_commands.append(f"echo 'conda activate {env_name}' >> ~/.bashrc")
+    setup_commands.append(f"conda init && source ~/.bashrc && conda activate {env_name}")
     setup_commands.append("echo ' ' | trunk init -n")
 
     # Install additional packages if specified
@@ -129,7 +131,7 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
     )
 
     setup_commands.append(
-        f"cat <<'{HEREDOC_DELIMITER}' > ~/issue.md\n{prompt}\n{HEREDOC_DELIMITER}"
+        f"cat <<'{HEREDOC_DELIMITER}' > /root/issue.md\n{prompt}\n{HEREDOC_DELIMITER}"
     )
 
     # Reset test files to the state they should be in before the patch.
@@ -144,20 +146,20 @@ def make_test_spec(instance: SwebenchInstance) -> TestSpec:
     )
 
     eval_commands = [
-        f"cd {repo_directory}",
+        "cd /",
+        f"cd /{repo_directory}",
         # This is just informational, so we have a record
-        f"git status",
-        f"git show",
-        f"git diff {base_commit}",
-        f"echo ' ' | trunk init -n"
-        f"conda activate {env_name}",
+        f"git status  | cat",
+        f"git show | cat",
+        f"git diff {base_commit} | cat",
+        f"conda init --all && source ~/.bashrc && conda activate {env_name}",
         reset_tests_command,
         apply_test_patch_command,
         test_command,
     ]
 
     setup_script = "\n".join(["set -euxo pipefail"] + setup_commands) + "\n"
-    eval_script = "\n".join(["set -euxo pipefail"] + eval_commands) + "\n"
+    eval_script = "\n".join(["set -euxo pipefail"] * 0 + eval_commands) + "\n"
 
     return TestSpec(
         instance_id=instance_id,
