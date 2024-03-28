@@ -1,4 +1,5 @@
 import logging, os, platform, subprocess
+import random
 
 from constants import (
     APPLY_PATCH_FAIL,
@@ -123,7 +124,7 @@ class TestbedContextManager:
             self.testbed = os.path.abspath(testbed)
         else:
             self.temp_dir_work = TemporaryDirectory(dir=temp_dir)
-            self.testbed = self.temp_dir_work.name
+            self.testbed = (temp_dir.remove_suffix("/") if temp_dir is not None else "") + '/test' + str(random.randint(0, 1000))
         logger_testbed.info(
             f"[Testbed] Using working directory {self.testbed} for testbed"
         )
