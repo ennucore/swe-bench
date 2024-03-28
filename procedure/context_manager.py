@@ -286,7 +286,7 @@ class TestbedContextManager:
 
                     # Install dependencies
                     path_to_reqs = get_requirements(setup_ref_instance, self.testbed)
-                    cmd = f"source {path_activate} {env_name} && echo 'activate successful' && pip install -r {path_to_reqs}"
+                    cmd = f"bash {path_activate} {env_name} && echo 'activate successful' && pip install -r {path_to_reqs}"
                     logger_testbed.info(
                         f"[Testbed] Installing dependencies for {env_name}; Command: {cmd}"
                     )
@@ -331,7 +331,7 @@ class TestbedContextManager:
 
                 # Install additional packages if specified
                 if "pip_packages" in install:
-                    cmd = f"source {path_activate} {env_name} && pip install {install['pip_packages']}"
+                    cmd = f"bash {path_activate} {env_name} && pip install {install['pip_packages']}"
                     logger_testbed.info(
                         f"[Testbed] Installing pip packages for {env_name}; Command: {cmd}"
                     )
@@ -442,7 +442,7 @@ class TaskEnvContextManager:
         self.log_file = os.path.join(log_dir, log_file_name)
 
         self.cmd_activate = (
-            f"source {os.path.join(self.conda_path, 'bin', 'activate')} "
+            f"bash {os.path.join(self.conda_path, 'bin', 'activate')} "
             + f"{self.venv} && echo 'activate successful'"
         )
         self.timeout = timeout
@@ -621,7 +621,7 @@ class TaskEnvContextManager:
             os.path.dirname(self.testbed.rstrip("/")),
             f"temp_{self.instance[KEY_INSTANCE_ID]}_{patch_type}.patch",
         )
-        if patch.startswith('PATCH'):
+        if patch.startswith('REWRITE'):
             patch = apply_rewrite_patch(patch)
         else:
             with open(patch_path, "w") as f:
@@ -634,17 +634,17 @@ class TaskEnvContextManager:
             out_patch = self.exec(apply_cmd.split(" "), raise_error=False, check=False)
             os.remove(patch_path)
 
-        log_cmd = "Revert" if revert else "Apply"
-        if out_patch.returncode != 0:
-            # Patch apply failed
-            logger_taskenv.error(
-                f"[{self.testbed_name}] [{self.instance[KEY_INSTANCE_ID]}] {log_cmd} patch failed ({patch_type})"
-            )
-            with open(self.log_file, "a") as f:
-                f.write(f"{APPLY_PATCH_FAIL}; ({patch_type})\nOutput:\n")
-                f.write(out_patch.stdout)
-                f.write(out_patch.stderr)
-            return False
+            log_cmd = "Revert" if revert else "Apply"
+            if out_patch.returncode != 0:
+                # Patch apply failed
+                logger_taskenv.error(
+                    f"[{self.testbed_name}] [{self.instance[KEY_INSTANCE_ID]}] {log_cmd} patch failed ({patch_type})"
+                )
+                with open(self.log_file, "a") as f:
+                    f.write(f"{APPLY_PATCH_FAIL}; ({patch_type})\nOutput:\n")
+                    f.write(out_patch.stdout)
+                    f.write(out_patch.stderr)
+                return False
 
         # Patch apply succeeded
         logger_taskenv.info(

@@ -19,7 +19,7 @@ from typing import Dict, List
 load_dotenv()
 
 def apply_rewrite_patch(patch, root: str = ''):
-    patch = patch.removeprefix('PATCH\n')
+    patch = patch.removeprefix('REWRITE\n')
     root = root or './'
     if not root.endswith('/'):
         root += '/'
